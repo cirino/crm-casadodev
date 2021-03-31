@@ -1,0 +1,6 @@
+applicationType: default
+defaultPackage: com.casadodev
+testFramework: junit
+sourceLanguage: kotlin
+buildTool: gradle_kotlin
+features: [annotation-api, app-name, gradle, hibernate-jpa, http-client, jdbc-hikari, junit, kotlin, kotlin-application, logback, netty-server, postgres, readme, shade, testcontainers, yaml]

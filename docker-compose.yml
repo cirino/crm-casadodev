@@ -1,0 +1,100 @@
+version: '3'
+
+services:
+  postgres:
+    container_name: crm_postgres
+    image: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123}
+      PGDATA: /data/postgres
+    volumes:
+      - postgres:/data/postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres
+    restart: unless-stopped
+
+  pgadmin:
+    container_name: crm_pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin:/root/.pgadmin
+
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    networks:
+      - postgres
+    restart: unless-stopped
+
+  localstack:
+    container_name: crm_aws_s3
+    image: localstack/localstack
+#    network_mode: bridge
+    ports:
+      - "4566:4566"
+      - "${PORT_WEB_UI-8080}:${PORT_WEB_UI-8080}"
+    environment:
+      - SERVICES=s3
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - DEBUG=1
+      - DATA_DIR=${DATA_DIR- }
+      # AWS
+      - AWS_ACCESS_KEY_ID=casadodev
+      - AWS_SECRET_ACCESS_KEY=casadodevsecret
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_DEFAULT_OUTPUT=json
+    volumes:
+      - "${TMPDIR:-/tmp/localstack}:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+networks:
+  postgres:
+    driver: bridge
+
+volumes:
+  postgres:
+  pgadmin:
+
+
+#networks:
+#  mynet:
+#
+#volumes:
+#  mariadb_data:
+#  phpmyadmin_data:
+#  mariadb:
+#    image: mariadb:latest
+#    container_name: mariadb
+#    environment:
+#      MYSQL_DATABASE: casadodev
+#      MYSQL_ROOT_PASSWORD: live_root
+#      MYSQL_USER: dag
+#      MYSQL_PASSWORD: 123
+#    volumes:
+#      - mariadb_data:/var/lib/mysql/
+#    networks:
+#      - mynet
+#    restart: on-failure:2
+#    ports:
+#      - "3306:3306"
+#
+#  phpmyadmin:
+#    image: phpmyadmin/phpmyadmin:latest
+#    restart: on-failure:2
+#    container_name: phpmyadmin
+#    environment:
+#      PMA_HOST: mariadb
+#    ports:
+#      - "500:80"
+#    volumes:
+#      - phpmyadmin_data:/var/www/html/
+#    networks:
+#      - mynet
+#    depends_on:
+#      - mariadb
